@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>統計分析專題期末報告</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --ink: #1f2937;
+      --muted: #687383;
+      --line: #d9e0ea;
+      --panel: #ffffff;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --soft: #e8f4f2;
+      --soft-2: #fff4df;
+      --shadow: 0 18px 50px rgba(31, 41, 55, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .slide {
+      display: none;
+      width: min(1280px, calc(100vw - 56px));
+      height: min(720px, calc(100vh - 104px));
+      background: var(--panel);
+      border: 1px solid rgba(217, 224, 234, .9);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide.active {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 7px;
+      background: linear-gradient(90deg, var(--accent), #2563eb, var(--accent-2));
+    }
+
+    .slide-header {
+      padding: 34px 52px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .slide-title {
+      margin: 0;
+      font-size: clamp(28px, 3.4vw, 44px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .slide-kicker {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .slide-no {
+      color: var(--muted);
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .content {
+      min-height: 0;
+      padding: 28px 52px 42px;
+      overflow: auto;
+    }
+
+    .cover {
+      grid-template-rows: 1fr;
+      background:
+        linear-gradient(120deg, rgba(15, 118, 110, .12), rgba(180, 83, 9, .08)),
+        var(--panel);
+    }
+
+    .cover .content {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 36px;
+      align-items: center;
+      padding: 54px;
+    }
+
+    .cover-title {
+      font-size: clamp(44px, 5vw, 70px);
+      line-height: 1.08;
+      margin: 0 0 22px;
+      letter-spacing: 0;
+    }
+
+    .cover-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.6;
+    }
+
+    .note {
+      color: var(--muted);
+      line-height: 1.75;
+      margin: 0 0 20px;
+      font-size: 19px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .callout {
+      background: var(--soft);
+      border: 1px solid #b7deda;
+      padding: 20px 22px;
+      border-radius: 8px;
+      line-height: 1.7;
+    }
+
+    .callout.warn {
+      background: var(--soft-2);
+      border-color: #f3cf95;
+    }
+
+    .prompt {
+      min-height: 150px;
+      border: 1px dashed #a8b3c3;
+      background: #fbfcff;
+      border-radius: 8px;
+      padding: 18px 20px;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: #fff;
+      font-size: 16px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      min-height: 42px;
+    }
+
+    th {
+      background: #eef6f5;
+      color: #153f3a;
+      font-weight: 700;
+    }
+
+    td.blank {
+      color: #98a2b3;
+    }
+
+    .small-table {
+      font-size: 15px;
+    }
+
+    .section-title {
+      font-size: 21px;
+      margin: 10px 0 12px;
+      color: #153f3a;
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr 80px 1fr;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0 24px;
+    }
+
+    .node {
+      min-height: 116px;
+      border: 2px solid #9ccdc8;
+      background: #f4fbfa;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .node.mid {
+      border-color: #f0bd69;
+      background: #fff8ea;
+    }
+
+    .arrow {
+      height: 3px;
+      background: var(--accent);
+      position: relative;
+    }
+
+    .arrow::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -6px;
+      border-left: 12px solid var(--accent);
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+    }
+
+    .moderator {
+      width: min(460px, 70%);
+      margin: 0 auto 16px;
+      border-color: #9db7e8;
+      background: #f2f6ff;
+    }
+
+    .caption {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .92);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 28px rgba(31, 41, 55, .16);
+      backdrop-filter: blur(8px);
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid #c7d1df;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      min-width: 42px;
+      min-height: 38px;
+      padding: 0 14px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: var(--accent);
+      outline: 2px solid rgba(15, 118, 110, .16);
+    }
+
+    .counter {
+      min-width: 76px;
+      text-align: center;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 850px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        display: block;
+        height: auto;
+        min-height: 100vh;
+        padding: 14px;
+      }
+
+      .slide,
+      .slide.active {
+        width: 100%;
+        height: auto;
+        min-height: calc(100vh - 92px);
+      }
+
+      .slide-header,
+      .content,
+      .cover .content {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .cover .content,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .diagram {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        width: 3px;
+        height: 38px;
+        justify-self: center;
+      }
+
+      .arrow::after {
+        right: -6px;
+        top: auto;
+        bottom: -1px;
+        border-top: 12px solid var(--accent);
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 0;
+      }
+    }
+
+    @media print {
+      body {
+        overflow: visible;
+        background: #fff;
+      }
+
+      .deck {
+        display: block;
+        height: auto;
+        padding: 0;
+      }
+
+      .slide,
+      .slide.active {
+        display: grid;
+        width: 100%;
+        height: 100vh;
+        page-break-after: always;
+        box-shadow: none;
+        border: 0;
+      }
+
+      .toolbar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-live="polite">
+    <section class="slide cover active" data-title="封面頁">
+      <div class="content">
+        <div>
+          <p class="slide-kicker">統計分析專題</p>
+          <h1 class="cover-title">統計分析專題期末報告</h1>
+          <p class="cover-subtitle">依個人研究主題與問卷分析結果填寫完整內容</p>
+        </div>
+        <table>
+          <tbody>
+            <tr><th>項目</th><th>內容</th></tr>
+            <tr><td>課程名稱</td><td>統計分析專題</td></tr>
+            <tr><td>報告題目</td><td class="blank">依個人研究題目填寫</td></tr>
+            <tr><td>班級</td><td class="blank">依個人資料填寫</td></tr>
+            <tr><td>學號</td><td class="blank">依個人資料填寫</td></tr>
+            <tr><td>姓名</td><td class="blank">依個人資料填寫</td></tr>
+            <tr><td>報告日期</td><td class="blank">依實際報告日期填寫</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="研究題目">
+      <header class="slide-header"><div><p class="slide-kicker">研究主題</p><h2 class="slide-title">研究題目</h2></div><span class="slide-no">02 / 16</span></header>
+      <div class="content">
+        <p class="note">請清楚列出本次期末報告的研究題目。</p>
+        <div class="prompt">研究題目：請填入完整題名，例如「服務品質、滿意度與再購意願之關係研究」。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="研究架構圖">
+      <header class="slide-header"><div><p class="slide-kicker">研究模型</p><h2 class="slide-title">研究架構圖</h2></div><span class="slide-no">03 / 16</span></header>
+      <div class="content">
+        <div class="node moderator">調節變數</div>
+        <div class="diagram" aria-label="研究架構圖">
+          <div class="node">自變數</div>
+          <div class="arrow"></div>
+          <div class="node mid">中介變數</div>
+          <div class="arrow"></div>
+          <div class="node">依變數</div>
+        </div>
+        <table>
+          <thead><tr><th>項目</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td>自變數</td><td>影響其他變數的主要因素</td></tr>
+            <tr><td>依變數</td><td>本研究欲解釋或預測的結果變數</td></tr>
+            <tr><td>中介變數</td><td>說明自變數如何影響依變數的中間機制</td></tr>
+            <tr><td>調節變數</td><td>說明變數之間關係強弱是否會受到其他因素影響</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">若研究未包含中介變數或調節變數，可不列入。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-title="研究假設">
+      <header class="slide-header"><div><p class="slide-kicker">假設設計</p><h2 class="slide-title">研究假設</h2></div><span class="slide-no">04 / 16</span></header>
+      <div class="content">
+        <p class="note">請依據研究架構圖，逐一列出本研究欲檢定的研究假設。</p>
+        <table>
+          <thead><tr><th style="width: 20%;">假設編號</th><th>研究假設內容</th></tr></thead>
+          <tbody>
+            <tr><td>H1</td><td></td></tr><tr><td>H2</td><td></td></tr><tr><td>H3</td><td></td></tr>
+            <tr><td>H4</td><td></td></tr><tr><td>H5</td><td></td></tr><tr><td>H6</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="研究變數與問卷題項">
+      <header class="slide-header"><div><p class="slide-kicker">問卷工具</p><h2 class="slide-title">研究變數與問卷題項</h2></div><span class="slide-no">05 / 16</span></header>
+      <div class="content">
+        <p class="note">請說明本研究使用的變數名稱、題項編號、題項內容與參考文獻。</p>
+        <table>
+          <thead><tr><th>變數名稱</th><th>題項編號</th><th>題項內容</th><th>參考文獻</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="樣本基本資料分析">
+      <header class="slide-header"><div><p class="slide-kicker">樣本描述</p><h2 class="slide-title">樣本基本資料分析</h2></div><span class="slide-no">06 / 16</span></header>
+      <div class="content">
+        <p class="note">請依據問卷回收資料，整理受試者的基本資料分布情形。</p>
+        <table>
+          <thead><tr><th>變項</th><th>類別</th><th>人數</th><th>百分比</th></tr></thead>
+          <tbody>
+            <tr><td>性別</td><td></td><td></td><td></td></tr><tr><td>年級</td><td></td><td></td><td></td></tr>
+            <tr><td>年齡</td><td></td><td></td><td></td></tr><tr><td>使用經驗</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="敘述性統計分析">
+      <header class="slide-header"><div><p class="slide-kicker">描述統計</p><h2 class="slide-title">敘述性統計分析</h2></div><span class="slide-no">07 / 16</span></header>
+      <div class="content">
+        <p class="note">請呈現各研究構面的平均數與標準差，以了解受試者對各構面的整體填答情形。</p>
+        <table>
+          <thead><tr><th>構面</th><th>題項數</th><th>平均數</th><th>標準差</th><th>排序</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="信效度分析">
+      <header class="slide-header"><div><p class="slide-kicker">量表品質</p><h2 class="slide-title">信效度分析</h2></div><span class="slide-no">08 / 16</span></header>
+      <div class="content stack">
+        <div>
+          <h3 class="section-title">8-1 信度分析</h3>
+          <table class="small-table"><thead><tr><th>構面</th><th>題項數</th><th>Cronbach's α</th><th>判斷結果</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr></tbody></table>
+        </div>
+        <div class="grid-2">
+          <table class="small-table"><thead><tr><th>指標</th><th>判斷標準</th></tr></thead><tbody><tr><td>Cronbach's α</td><td>大於 .70，表示信度良好</td></tr><tr><td>Cronbach's α</td><td>介於 .60 至 .70，表示尚可接受</td></tr><tr><td>Cronbach's α</td><td>低於 .60，表示信度不足，需檢討題項</td></tr></tbody></table>
+          <div class="callout">請依問卷構面填入分析結果；若欄位不足，可直接複製表格列。</div>
+        </div>
+        <div>
+          <h3 class="section-title">8-2 收斂效度分析</h3>
+          <table class="small-table"><thead><tr><th>構面</th><th>題項數</th><th>因素負荷量範圍</th><th>AVE</th><th>CR</th><th>判斷結果</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        </div>
+        <table class="small-table"><thead><tr><th>指標</th><th>判斷標準</th></tr></thead><tbody><tr><td>因素負荷量</td><td>建議大於 .50</td></tr><tr><td>AVE</td><td>建議大於 .50</td></tr><tr><td>CR</td><td>建議大於 .70</td></tr></tbody></table>
+        <div>
+          <h3 class="section-title">8-3 區別效度分析</h3>
+          <table class="small-table"><thead><tr><th>構面</th><th>變數一</th><th>變數二</th><th>變數三</th><th>變數四</th></tr></thead><tbody><tr><td>變數一</td><td></td><td></td><td></td><td></td></tr><tr><td>變數二</td><td></td><td></td><td></td><td></td></tr><tr><td>變數三</td><td></td><td></td><td></td><td></td></tr><tr><td>變數四</td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        </div>
+        <table class="small-table"><thead><tr><th>指標</th><th>判斷標準</th></tr></thead><tbody><tr><td>AVE 平方根</td><td>應大於該構面與其他構面之相關係數</td></tr><tr><td>相關係數</td><td>各構面之間不宜過高</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="相關分析">
+      <header class="slide-header"><div><p class="slide-kicker">變數關係</p><h2 class="slide-title">相關分析</h2></div><span class="slide-no">09 / 16</span></header>
+      <div class="content">
+        <p class="note">請檢驗各研究變數之間是否具有顯著相關。</p>
+        <table>
+          <thead><tr><th>變數</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+          <tbody>
+            <tr><td>1. 變數一</td><td>1</td><td></td><td></td><td></td></tr>
+            <tr><td>2. 變數二</td><td></td><td>1</td><td></td><td></td></tr>
+            <tr><td>3. 變數三</td><td></td><td></td><td>1</td><td></td></tr>
+            <tr><td>4. 變數四</td><td></td><td></td><td></td><td>1</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">註：p &lt; .05 表示達顯著水準；p &lt; .01 表示達高度顯著水準。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-title="迴歸分析">
+      <header class="slide-header"><div><p class="slide-kicker">假設檢定</p><h2 class="slide-title">迴歸分析</h2></div><span class="slide-no">10 / 16</span></header>
+      <div class="content">
+        <p class="note">請依據研究假設，檢驗自變數對依變數是否具有顯著影響。</p>
+        <table class="small-table">
+          <thead><tr><th>依變數</th><th>自變數</th><th>β</th><th>t 值</th><th>p 值</th><th>R²</th><th>調整後 R²</th><th>F 值</th></tr></thead>
+          <tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="中介效果分析">
+      <header class="slide-header"><div><p class="slide-kicker">間接效果</p><h2 class="slide-title">中介效果分析</h2></div><span class="slide-no">11 / 16</span></header>
+      <div class="content stack">
+        <p class="note">若研究架構包含中介變數，請進行中介效果分析。</p>
+        <table class="small-table"><thead><tr><th>路徑</th><th>β</th><th>t 值</th><th>p 值</th><th>95% 信賴區間</th><th>判斷結果</th></tr></thead><tbody><tr><td>自變數 → 中介變數</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>中介變數 → 依變數</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>自變數 → 中介變數 → 依變數</td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>指標</th><th>判斷方式</th></tr></thead><tbody><tr><td>p 值</td><td>小於 .05，表示達顯著水準</td></tr><tr><td>95% 信賴區間</td><td>未包含 0，表示中介效果成立</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="調節效果分析">
+      <header class="slide-header"><div><p class="slide-kicker">交互作用</p><h2 class="slide-title">調節效果分析</h2></div><span class="slide-no">12 / 16</span></header>
+      <div class="content stack">
+        <p class="note">若研究架構包含調節變數，請檢驗其是否影響自變數與依變數之間關係的強弱。</p>
+        <table class="small-table"><thead><tr><th>依變數</th><th>模型</th><th>自變數</th><th>β</th><th>t 值</th><th>p 值</th><th>R²</th><th>調整後 R²</th><th>ΔR²</th><th>F 值</th></tr></thead><tbody><tr><td></td><td>模型一</td><td>自變數</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td>模型二</td><td>自變數、調節變數</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td>模型三</td><td>自變數、調節變數、交互作用項</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>路徑</th><th>β</th><th>t 值</th><th>p 值</th><th>判斷結果</th></tr></thead><tbody><tr><td>自變數 × 調節變數 → 依變數</td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>指標</th><th>判斷方式</th></tr></thead><tbody><tr><td>交互作用項 p 值</td><td>小於 .05，表示調節效果成立</td></tr><tr><td>ΔR²</td><td>模型三相較模型二增加越多，代表解釋力提升越明顯</td></tr><tr><td>β 值正負</td><td>正值表示正向調節；負值表示負向調節</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="獨立樣本 t 檢定">
+      <header class="slide-header"><div><p class="slide-kicker">兩組差異</p><h2 class="slide-title">獨立樣本 t 檢定</h2></div><span class="slide-no">13 / 16</span></header>
+      <div class="content stack">
+        <p class="note">若研究需要比較兩組受試者在某一研究變數上的差異，可進行獨立樣本 t 檢定。</p>
+        <table class="small-table"><thead><tr><th>分析方法</th><th>適用情況</th></tr></thead><tbody><tr><td>獨立樣本 t 檢定</td><td>比較兩組之間是否具有顯著差異</td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>變數</th><th>組別</th><th>人數</th><th>平均數</th><th>標準差</th><th>t 值</th><th>p 值</th><th>判斷結果</th></tr></thead><tbody><tr><td></td><td>第一組</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td>第二組</td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>指標</th><th>判斷方式</th></tr></thead><tbody><tr><td>p 值</td><td>小於 .05，表示兩組之間具有顯著差異</td></tr><tr><td>p 值</td><td>大於或等於 .05，表示兩組之間未達顯著差異</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="單因子變異數分析">
+      <header class="slide-header"><div><p class="slide-kicker">多組差異</p><h2 class="slide-title">單因子變異數分析</h2></div><span class="slide-no">14 / 16</span></header>
+      <div class="content stack">
+        <p class="note">若研究需要比較三組以上受試者在某一研究變數上的差異，可進行單因子變異數分析。</p>
+        <table class="small-table"><thead><tr><th>變數</th><th>組別</th><th>人數</th><th>平均數</th><th>標準差</th><th>F 值</th><th>p 值</th><th>判斷結果</th></tr></thead><tbody><tr><td></td><td>第一組</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td>第二組</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td>第三組</td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>依變數</th><th>比較組別</th><th>平均差異</th><th>p 值</th><th>判斷結果</th></tr></thead><tbody><tr><td></td><td>第一組－第二組</td><td></td><td></td><td></td></tr><tr><td></td><td>第一組－第三組</td><td></td><td></td><td></td></tr><tr><td></td><td>第二組－第三組</td><td></td><td></td><td></td></tr></tbody></table>
+        <table class="small-table"><thead><tr><th>指標</th><th>判斷方式</th></tr></thead><tbody><tr><td>F 檢定 p 值</td><td>小於 .05，表示至少有一組與其他組存在顯著差異</td></tr><tr><td>事後比較 p 值</td><td>小於 .05，表示該兩組之間具有顯著差異</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="研究假設驗證結果彙整">
+      <header class="slide-header"><div><p class="slide-kicker">結果總表</p><h2 class="slide-title">研究假設驗證結果彙整</h2></div><span class="slide-no">15 / 16</span></header>
+      <div class="content">
+        <p class="note">請依據各項統計分析結果，整理研究假設是否成立。</p>
+        <table>
+          <thead><tr><th>假設</th><th>假設內容</th><th>分析方法</th><th>檢定結果</th><th>是否成立</th></tr></thead>
+          <tbody>
+            <tr><td>H1</td><td></td><td></td><td></td><td></td></tr><tr><td>H2</td><td></td><td></td><td></td><td></td></tr><tr><td>H3</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>H4</td><td></td><td></td><td></td><td></td></tr><tr><td>H5</td><td></td><td></td><td></td><td></td></tr><tr><td>H6</td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide" data-title="結論">
+      <header class="slide-header"><div><p class="slide-kicker">總結</p><h2 class="slide-title">結論</h2></div><span class="slide-no">16 / 16</span></header>
+      <div class="content grid-2">
+        <div>
+          <p class="note">請依據分析結果，整理本研究的主要發現。</p>
+          <table>
+            <thead><tr><th>項目</th><th>內容</th></tr></thead>
+            <tbody>
+              <tr><td>主要研究發現</td><td></td></tr><tr><td>假設驗證結果</td><td></td></tr><tr><td>實務建議</td><td></td></tr><tr><td>研究限制</td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <strong>頁面順序</strong><br>
+          1 封面頁、2 研究題目、3 研究架構圖、4 研究假設、5 研究變數與問卷題項、6 樣本基本資料分析、7 敘述性統計分析、8 信效度分析、9 相關分析、10 迴歸分析、11 中介效果分析、12 調節效果分析、13 獨立樣本 t 檢定、14 單因子變異數分析、15 研究假設驗證結果彙整、16 結論。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="toolbar" aria-label="簡報控制">
+    <button type="button" id="prev" title="上一頁" aria-label="上一頁">‹</button>
+    <span class="counter" id="counter">1 / 16</span>
+    <button type="button" id="next" title="下一頁" aria-label="下一頁">›</button>
+    <button type="button" id="print" title="列印" aria-label="列印">列印</button>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const counter = document.querySelector("#counter");
+    let current = Number(new URLSearchParams(location.search).get("slide")) - 1;
+    if (!Number.isInteger(current) || current < 0 || current >= slides.length) current = 0;
+
+    function showSlide(index) {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => slide.classList.toggle("active", slideIndex === current));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      document.title = `${slides[current].dataset.title}｜統計分析專題期末報告`;
+      history.replaceState(null, "", `?slide=${current + 1}`);
+    }
+
+    document.querySelector("#prev").addEventListener("click", () => showSlide(current - 1));
+    document.querySelector("#next").addEventListener("click", () => showSlide(current + 1));
+    document.querySelector("#print").addEventListener("click", () => window.print());
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") showSlide(current + 1);
+      if (event.key === "ArrowLeft" || event.key === "PageUp") showSlide(current - 1);
+      if (event.key === "Home") showSlide(0);
+      if (event.key === "End") showSlide(slides.length - 1);
+    });
+
+    showSlide(current);
+  </script>
+</body>
+</html>

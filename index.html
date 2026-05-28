@@ -26,9 +26,13 @@
     .overview-card { min-height:104px; border:1px solid var(--line); background:#182236; color:var(--ink); border-radius:8px; padding:14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:8px; }
     .overview-card b { color:var(--cyan); font-family:Consolas,monospace; }
     .overview-card span { line-height:1.35; }
-    .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:60px 58px 42px; opacity:0; pointer-events:none; transform:translateY(14px); transition:opacity .4s ease, transform .4s ease; overflow:hidden; }
-    .slide.active { opacity:1; pointer-events:auto; transform:translateY(0); }
-    .slide-inner { width:100%; height:100%; max-width:1780px; display:grid; grid-template-columns:minmax(660px, 1.28fr) minmax(430px, .72fr); gap:34px; align-items:center; }
+    .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:60px 58px 42px; opacity:0; pointer-events:none; transform:translate3d(0,18px,0) scale(.986); filter:blur(10px); transition:opacity .68s cubic-bezier(.22,.72,.19,1), transform .68s cubic-bezier(.22,.72,.19,1), filter .68s ease; overflow:hidden; background-image:var(--slide-bg); background-size:cover; background-position:center; }
+    .slide::before { content:""; position:absolute; inset:0; z-index:0; background:linear-gradient(90deg, rgba(16,21,34,.96) 0%, rgba(16,21,34,.88) 45%, rgba(16,21,34,.58) 100%); pointer-events:none; }
+    .slide::after { content:""; position:absolute; inset:0; z-index:0; background:radial-gradient(circle at 16% 18%, rgba(34,211,238,.16), transparent 28%), radial-gradient(circle at 84% 78%, rgba(244,184,74,.12), transparent 28%); pointer-events:none; }
+    .slide.active { opacity:1; pointer-events:auto; transform:translate3d(0,0,0) scale(1); filter:blur(0); }
+    .slide-inner { position:relative; z-index:1; width:100%; height:100%; max-width:1780px; display:grid; grid-template-columns:minmax(660px, 1.28fr) minmax(430px, .72fr); gap:34px; align-items:center; }
+    .slide.active .slide-inner { animation:softReveal .72s cubic-bezier(.22,.72,.19,1) both; }
+    .slide.active::after { animation:lightSweep .82s ease-out both; }
     .slide.airy .slide-inner { grid-template-columns:minmax(570px, 1.05fr) minmax(500px, .95fr); }
     .slide.dense .slide-inner { grid-template-columns:minmax(720px, 1.42fr) minmax(380px, .58fr); }
     .content-side { min-width:0; }
@@ -46,6 +50,17 @@
     .image-side img { display:block; width:100%; height:auto; max-height:calc(100vh - 150px); object-fit:contain; border-radius:10px; border:1px solid var(--line); box-shadow:var(--shadow); background:rgba(17,24,39,.76); }
     #focusBox { position:fixed; z-index:45; left:50%; bottom:28px; transform:translateX(-50%) translateY(130px); max-width:min(860px,calc(100vw - 48px)); padding:16px 18px; border-radius:8px; border:1px solid rgba(34,211,238,.55); background:rgba(16,21,34,.96); box-shadow:var(--shadow); color:var(--ink); transition:transform .24s ease; line-height:1.55; }
     #focusBox.show { transform:translateX(-50%) translateY(0); }
+    @keyframes softReveal {
+      from { opacity:.2; transform:translate3d(0,22px,0) scale(.992); }
+      to { opacity:1; transform:translate3d(0,0,0) scale(1); }
+    }
+    @keyframes lightSweep {
+      from { opacity:.2; transform:translateX(-2.2%); }
+      to { opacity:1; transform:translateX(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .slide, .slide.active .slide-inner, .slide.active::after { animation:none; transition:none; transform:none; filter:none; }
+    }
     @media (max-width:1050px) {
       html, body { overflow:auto; }
       .slide { padding:70px 22px 70px; align-items:flex-start; overflow:auto; }
@@ -227,12 +242,26 @@
       return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
     }
 
+    function backgroundData(title, key, index) {
+      const labels = visualLabels[key] || visualLabels.cover;
+      const [c1, c2] = palette[index % palette.length];
+      const accent = palette[(index + 3) % palette.length][1];
+      const leftY = 150 + (index % 4) * 24;
+      const rightY = 180 + (index % 5) * 32;
+      const ringX = 720 + (index % 3) * 70;
+      const ringY = 260 + (index % 4) * 62;
+      const labelText = labels.slice(0, 3).map((label, i) => `<text x="86" y="${640 + i * 48}" font-size="28" font-weight="800" fill="#f8fafc" opacity="${0.18 + i * 0.08}">${label}</text>`).join("");
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><defs><linearGradient id="main" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}" stop-opacity=".56"/><stop offset="1" stop-color="${c2}" stop-opacity=".42"/></linearGradient><radialGradient id="pulse" cx=".72" cy=".28" r=".75"><stop offset="0" stop-color="${accent}" stop-opacity=".36"/><stop offset=".48" stop-color="${c1}" stop-opacity=".14"/><stop offset="1" stop-color="#101522" stop-opacity="0"/></radialGradient><pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72" fill="none" stroke="#ffffff" stroke-opacity=".07" stroke-width="1"/></pattern><filter id="blur"><feGaussianBlur stdDeviation="30"/></filter></defs><rect width="1920" height="1080" fill="#101522"/><rect width="1920" height="1080" fill="url(#pulse)"/><rect width="1920" height="1080" fill="url(#grid)"/><path d="M-80 ${leftY + 440} C290 ${leftY + 330} 440 ${leftY + 520} 790 ${leftY + 390} C1100 ${leftY + 275} 1380 ${leftY + 210} 2020 ${leftY + 335} L2020 1120 L-80 1120Z" fill="url(#main)" opacity=".18"/><circle cx="${ringX}" cy="${ringY}" r="240" fill="none" stroke="${c1}" stroke-width="42" stroke-opacity=".15"/><circle cx="${ringX + 260}" cy="${ringY + 110}" r="340" fill="none" stroke="${c2}" stroke-width="2" stroke-opacity=".24"/><circle cx="${ringX + 415}" cy="${ringY + 230}" r="92" fill="${accent}" opacity=".16" filter="url(#blur)"/><g transform="translate(1280 ${rightY})" opacity=".26"><rect x="0" y="0" width="420" height="92" rx="20" fill="${c1}"/><rect x="44" y="132" width="520" height="92" rx="20" fill="${c2}"/><rect x="-36" y="264" width="460" height="92" rx="20" fill="${accent}"/></g><g font-family="Microsoft JhengHei, Noto Sans TC, Arial">${labelText}<text x="86" y="144" font-size="42" font-weight="900" fill="#ffffff" opacity=".13">${String(index + 1).padStart(2,"0")}</text><text x="86" y="208" font-size="54" font-weight="900" fill="#ffffff" opacity=".11">${title}</text></g></svg>`;
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
     const deck = document.getElementById("deck");
     const overviewGrid = document.getElementById("overviewGrid");
     deckData.forEach((slide, index) => {
       const section = document.createElement("section");
       section.className = `slide ${slide.layout || "balanced"}${index === 0 ? " active" : ""}`;
       section.dataset.slide = String(index + 1);
+      section.style.setProperty("--slide-bg", `url("${backgroundData(slide.title, slide.visual, index)}")`);
       section.innerHTML = `<div class="slide-inner"><div class="content-side"><h1>${slide.title}</h1><div class="point-list">${slide.points.map((point, pointIndex) => `<article class="point-card" tabindex="0"><span class="point-index">${String(pointIndex + 1).padStart(2,"0")}</span><div class="point-text"><h2>${point[0]}</h2><p>${point[1]}</p></div></article>`).join("")}</div></div><figure class="image-side"><img src="${svgData(slide.title, slide.visual, index)}" alt="${slide.title}主題視覺"></figure></div>`;
       deck.appendChild(section);
       const card = document.createElement("button");
